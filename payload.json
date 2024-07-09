@@ -1,0 +1,107 @@
+{
+    "substitution": {
+        "MSISDN": "6666666",
+        "guid": "{{@guid}}",
+        "now": "{{@now}}"
+    },
+    "template": {
+        "messageId": "{{.guid}}",
+        "messageDate": "{{.now}}",
+        "dateFrom": "2024-06-26T23:34:47Z",
+        "msisdn": "{{.MSISDN}}",
+        "simCard": {
+            "iccid": "89700999355459619799",
+            "imsi": "250030555300479"
+        },
+        "resourceId": {
+            "localId": "351123",
+            "forisId": 1,
+            "resourceClassCode": "M",
+            "resourceUserCode": "1",
+            "resourceNumber": "377300093518"
+        },
+        "agreement": {
+            "number": "177300057711",
+            "id": {
+                "localId": "88055",
+                "forisId": -1
+            }
+        },
+        "account": {
+            "number": "277300043588",
+            "id": {
+                "localId": "98791",
+                "forisId": -1
+            },
+            "billingGroupCode": "1",
+            "billingGroupId": 1,
+            "serviceProviderCode": "Moscow"
+        },
+        "tariffPlan": {
+            "code": "10",
+            "globalCode": "0030.1",
+            "regionCode": "138020",
+            "name": "МТС Москва - Оптима 100"
+        },
+        "partyRoles": [
+            {
+                "roleType": "customer",
+                "partyId": {
+                    "localId": "120333",
+                    "forisId": -1
+                }
+            }
+        ],
+        "connectedServices": [
+            {
+                "code": "CB264",
+                "globalCode": "CB264.1",
+                "regionCode": "CENTER",
+                "name": "Определитель номера",
+                "serviceId": {
+                    "localId": "567546",
+                    "forisId": -1
+                },
+                "dateFrom": "2015-06-09T18:02:12Z",
+                "statusCode": "ACTIVE",
+                "type": "PE"
+            },
+            {
+                "code": "CB532",
+                "globalCode": "CB532.1",
+                "regionCode": "CENTER",
+                "name": "Переадресация вызова (периодическая)",
+                "serviceId": {
+                    "localId": "567547",
+                    "forisId": -1
+                },
+                "dateFrom": "2015-06-09T18:02:12Z",
+                "statusCode": "ACTIVE",
+                "type": "PE"
+            }
+        ],
+        "dateOfCreation": "2015-06-09T18:02:12Z",
+        "terminalDeviceBlocks": [
+            {
+                "requestId": 0,
+                "terminalDeviceId": 351123,
+                "serviceCode": "FRBLKINIT",
+                "blockTypeCode": "UNBLOCK",
+                "spaResult": "0",
+                "id": 0,
+                "dateFrom": "2020-03-20T17:12:13",
+                "versionDate": "2024-06-27T02:34:48"
+            },
+            {
+                "terminalDeviceId": 351123,
+                "serviceCode": "FRBLKINIT",
+                "blockTypeCode": "BLOCK",
+                "id": 0,
+                "dateFrom": "2015-06-09T21:02:12",
+                "versionDate": "2024-06-27T02:34:48"
+            }
+        ],
+        "activationDate": "2020-03-20T17:12:13",
+        "serviceProviderId": 1
+    }
+}

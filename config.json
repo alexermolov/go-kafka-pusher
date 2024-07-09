@@ -1,0 +1,6 @@
+{
+    "bootstrapServers": "localhost:9092",
+    "topic": "test-topic",
+    "clientId": "test-client",
+    "partition": 0
+}
