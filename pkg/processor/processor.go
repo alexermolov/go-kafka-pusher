@@ -22,7 +22,7 @@ func NewProcessor(settings *loader.Message) *Processor {
 func (proc *Processor) Push() {
 	conn, err := kafka.DialLeader(context.Background(), "tcp", proc.Message.Settings.BootstrapServers, proc.Message.Settings.Topic, proc.Message.Settings.Partition)
 	if err != nil {
-		log.Fatal("failed to dial leader:", err)
+		log.Fatal("❌ failed to dial leader:", err)
 	}
 
 	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
@@ -30,16 +30,19 @@ func (proc *Processor) Push() {
 		kafka.Message{Value: proc.Message.Message.Bytes()},
 	)
 	if err != nil {
-		log.Fatal("failed to write messages:", err)
+		log.Fatal("❌ failed to write messages:", err)
 	}
 
+	log.Default().Printf("✅ Message sent to %s topic %s partition %d", proc.Message.Settings.BootstrapServers, proc.Message.Settings.Topic, proc.Message.Settings.Partition)
 	log.Default().Println()
 	log.Default().Println()
-	log.Default().Printf("Message sent to %s topic %s partition %d", proc.Message.Settings.BootstrapServers, proc.Message.Settings.Topic, proc.Message.Settings.Partition)
+
+	log.Default().Println("✅ Message was:")
+	log.Default().Println(proc.Message.Message)
 	log.Default().Println()
 	log.Default().Println()
 
 	if err := conn.Close(); err != nil {
-		log.Fatal("failed to close writer:", err)
+		log.Fatal("❌ failed to close writer:", err)
 	}
 }

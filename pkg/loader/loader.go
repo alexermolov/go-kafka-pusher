@@ -62,13 +62,6 @@ func (l *Loader) ParseSettings(config string, payload string) *Message {
 		panic(err)
 	}
 
-	log.Default().Println()
-	log.Default().Println()
-	log.Default().Println("Message was:")
-	log.Default().Println(result.String())
-	log.Default().Println()
-	log.Default().Println()
-
 	return &Message{
 		Settings: &settings,
 		Message:  result,
@@ -79,7 +72,7 @@ func (l *Loader) LoadSettings(config string) Settings {
 	var settings Settings
 	configFile, err := os.Open(config)
 	if err != nil {
-		log.Fatalln("Cannot open settings file")
+		log.Fatalln("❌ Cannot open settings file")
 	}
 	defer configFile.Close()
 
@@ -93,7 +86,7 @@ func (l *Loader) LoadPayload(payload string) Payload {
 	var load Payload
 	payloadFile, err := os.Open(payload)
 	if err != nil {
-		log.Fatalln("Cannot open settings file")
+		log.Fatalln("❌ Cannot open settings file")
 	}
 	defer payloadFile.Close()
 
