@@ -1,6 +1,12 @@
 {
     "bootstrapServers": "localhost:9092",
-    "topic": "test-topic",
+    "topic": "sag-telco-profile-sync",
     "clientId": "test-client",
-    "partition": 0
+    "partition": 0,
+    "verbose": true,
+    "scheduler": {
+        "enabled": true,
+        "VUs": 1,
+        "periodSec": 5
+    }
 }

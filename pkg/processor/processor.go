@@ -13,9 +13,9 @@ type Processor struct {
 	Message *loader.Message
 }
 
-func NewProcessor(settings *loader.Message) *Processor {
+func NewProcessor(msg *loader.Message) *Processor {
 	return &Processor{
-		Message: settings,
+		Message: msg,
 	}
 }
 
@@ -25,9 +25,11 @@ func (proc *Processor) Push() {
 		log.Fatal("❌ failed to dial leader:", err)
 	}
 
+	msg := proc.Message.Message()
+
 	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	_, err = conn.WriteMessages(
-		kafka.Message{Value: proc.Message.Message.Bytes()},
+		kafka.Message{Value: msg.Bytes()},
 	)
 	if err != nil {
 		log.Fatal("❌ failed to write messages:", err)
@@ -37,10 +39,12 @@ func (proc *Processor) Push() {
 	log.Default().Println()
 	log.Default().Println()
 
-	log.Default().Println("✅ Message was:")
-	log.Default().Println(proc.Message.Message)
-	log.Default().Println()
-	log.Default().Println()
+	if proc.Message.Settings.Verbose {
+		log.Default().Println("✅ Message was:")
+		log.Default().Println(msg.String())
+		log.Default().Println()
+		log.Default().Println()
+	}
 
 	if err := conn.Close(); err != nil {
 		log.Fatal("❌ failed to close writer:", err)
