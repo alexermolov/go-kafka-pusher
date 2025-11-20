@@ -19,13 +19,6 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 		t.Skip("config.yaml not found in project root, skipping test")
 	}
 	
-	// Set environment variables for config.yaml (uses ${VAR:-default} syntax)
-	// Note: os.ExpandEnv doesn't support :-default, so we need to set the vars
-	os.Setenv("KAFKA_BROKERS", "localhost:9092")
-	os.Setenv("KAFKA_TOPIC", "test-topic")
-	defer os.Unsetenv("KAFKA_BROKERS")
-	defer os.Unsetenv("KAFKA_TOPIC")
-	
 	// Load the config
 	cfg, err := Load(configPath)
 	if err != nil {
@@ -67,55 +60,6 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 	}
 	if cfg.Payload.TemplatePath == "" {
 		t.Error("Expected payload template path to be set")
-	}
-}
-
-// TestConfigYAMLWithEnvVars tests that environment variable expansion works
-func TestConfigYAMLWithEnvVars(t *testing.T) {
-	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "config_with_env.yaml")
-	
-	// Set test environment variables
-	os.Setenv("TEST_KAFKA_BROKERS", "testhost:9092")
-	os.Setenv("TEST_KAFKA_TOPIC", "test-env-topic")
-	defer os.Unsetenv("TEST_KAFKA_BROKERS")
-	defer os.Unsetenv("TEST_KAFKA_TOPIC")
-	
-	yamlContent := `kafka:
-  brokers:
-    - ${TEST_KAFKA_BROKERS}
-  topic: ${TEST_KAFKA_TOPIC}
-  client_id: test-client
-  partition: 0
-  timeout: 5s
-  batch_size: 50
-  async: false
-
-logging:
-  level: info
-  format: text
-  verbose: false
-
-payload:
-  template_path: ./test.yaml
-`
-	
-	err := os.WriteFile(configPath, []byte(yamlContent), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create test config: %v", err)
-	}
-	
-	cfg, err := Load(configPath)
-	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
-	}
-	
-	// Verify environment variables were expanded
-	if len(cfg.Kafka.Brokers) == 0 || cfg.Kafka.Brokers[0] != "testhost:9092" {
-		t.Errorf("Expected broker 'testhost:9092', got %v", cfg.Kafka.Brokers)
-	}
-	if cfg.Kafka.Topic != "test-env-topic" {
-		t.Errorf("Expected topic 'test-env-topic', got '%s'", cfg.Kafka.Topic)
 	}
 }
 

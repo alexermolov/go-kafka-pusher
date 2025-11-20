@@ -183,7 +183,7 @@ func generateGUID() (string, error) {
 // Uses crypto/rand for thread-safety and security
 func generateRandomNumber(digits int) (string, error) {
 	if digits <= 0 {
-		digits = 1
+		return "0", nil
 	}
 	if digits > 18 {
 		digits = 18 // Prevent overflow

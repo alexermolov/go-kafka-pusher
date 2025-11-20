@@ -38,9 +38,9 @@ func NewProducer(cfg *config.KafkaConfig, logger *slog.Logger) (*Producer, error
 		ErrorLogger:  kafka.LoggerFunc(logger.Error),
 	}
 
-	// Set specific partition if configured
+	// Use manual partitioning if specific partition is configured
 	if cfg.Partition >= 0 {
-		writer.Balancer = &kafka.RoundRobin{}
+		writer.Balancer = nil // Manual partition assignment via Message.Partition
 	}
 
 	return &Producer{
@@ -76,7 +76,6 @@ func (p *Producer) Send(ctx context.Context, message []byte) error {
 
 	p.logger.Info("message sent successfully",
 		slog.String("topic", p.cfg.Topic),
-		slog.Int("partition", p.cfg.Partition),
 		slog.Int("size", len(message)),
 		slog.Duration("duration", duration),
 	)

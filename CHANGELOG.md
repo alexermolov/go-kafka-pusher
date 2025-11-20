@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Complete rewrite with thread-safe implementation
-- YAML-based configuration with environment variable support
+- YAML-based configuration
 - Structured logging with slog
 - Graceful shutdown handling with context
 - Connection pooling for Kafka producer

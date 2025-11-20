@@ -187,8 +187,10 @@ func (s *Scheduler) Stop() error {
 
 	s.logger.Info("stopping scheduler")
 
+	// Cancel context if it exists
 	if s.cancel != nil {
 		s.cancel()
+		s.cancel = nil
 	}
 
 	// Wait for all workers to finish

@@ -11,7 +11,7 @@ A high-performance, thread-safe Kafka message producer with template-based paylo
 - 🔒 **Thread-Safe**: All components are designed for concurrent use
 - 📝 **Template Engine**: Dynamic message generation with substitution variables
 - ⏰ **Flexible Scheduling**: Built-in scheduler with configurable worker pools
-- 🔧 **Configuration**: YAML-based configuration with environment variable support
+- 🔧 **Configuration**: YAML-based configuration
 - 📊 **Structured Logging**: Built-in structured logging with slog
 - 🛡️ **Graceful Shutdown**: Proper signal handling and resource cleanup
 - 🎯 **Production Ready**: Comprehensive error handling and statistics tracking
@@ -69,8 +69,8 @@ kafka:
 ```yaml
 kafka:
   brokers:
-    - ${KAFKA_BROKERS:-localhost:9092}
-  topic: ${KAFKA_TOPIC:-test-topic}
+    - localhost:9092
+  topic: test-topic
   client_id: kafka-pusher
   partition: 0              # -1 for automatic
   timeout: 10s
@@ -218,16 +218,6 @@ docker build -t kafka-pusher .
 docker run -v $(pwd)/config.yaml:/app/config.yaml \
            -v $(pwd)/payload.yaml:/app/payload.yaml \
            kafka-pusher
-```
-
-## Environment Variables
-
-All configuration values can be overridden with environment variables:
-
-```bash
-export KAFKA_BROKERS="kafka1:9092,kafka2:9092"
-export KAFKA_TOPIC="my-topic"
-./bin/kafka-pusher
 ```
 
 ## Performance Tuning
