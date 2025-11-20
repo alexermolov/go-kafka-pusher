@@ -1,13 +1,21 @@
 {
-    "substitution": {
-        "guid": "{{@guid}}",
-        "now": "{{ @now|RFC3339 }}",
-        "fixrandom": "{{ @fixrnd|15 }}",
-        "td": "{{ @rnd|15 }}"
-    },
-    "template": {
-        "messageId": "{{.guid}}",
-        "messageDate": "2024-07-30T16:19:10.7679438+03:00",
-        "dateFrom": "2024-07-30T16:19:10.7677855+03:00"
+  "substitution": {
+    "guid": "{{@guid}}",
+    "now": "{{@now|RFC3339}}",
+    "localId": "{{@rnd|6}}",
+    "short": "{{@rnd|1}}",
+    "fixrandom": "{{@rnd|15}}",
+    "randomNumber": "{{@rnd|10}}",
+    "cardNumber": "{{@uuid}}",
+    "cardCode": "{{@uuid}}"
+  },
+  "template": {
+    "messageId": "{{.guid}}",
+    "messageDate": "{{.now}}",
+    "dateFrom": "{{.now}}",
+    "card": {
+      "number": "{{.cardNumber}}",
+      "code": "{{.cardCode}}"
     }
+  }
 }
