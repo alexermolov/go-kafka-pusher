@@ -1,95 +1,13 @@
 {
     "substitution": {
-        "MSISDN": "79189603999",
         "guid": "{{@guid}}",
         "now": "{{ @now|RFC3339 }}",
-        "localId": "{{ @rnd|6 }}",
-        "forisId": "{{ @rnd|1 }}",
         "fixrandom": "{{ @fixrnd|15 }}",
         "td": "{{ @rnd|15 }}"
     },
     "template": {
         "messageId": "{{.guid}}",
         "messageDate": "2024-07-30T16:19:10.7679438+03:00",
-        "dateFrom": "2024-07-30T16:19:10.7677855+03:00",
-        "msisdn": "79241649486835",
-        "simCard": {
-            "iccid": "80705398-1f78-4f3e-88bb-34504fef26b3",
-            "imsi": "0b2b9030-a8cb-42e9-8336-11fd7c52e7c3"
-        },
-        "resource": {
-            "localId": "33178",
-            "forisId": "1",
-            "resourceClassCode": "M",
-            "resourceCustomerTypeCode": "1",
-            "resourceNumber": "79016691751082"
-        },
-        "account": {
-            "number": "915442441",
-            "id": {
-                "localId": "27821",
-                "forisId": 1
-            },
-            "billingGroupCode": "13",
-            "billingGroupId": 8,
-            "serviceProviderCode": "Moscow"
-        },
-        "tariffPlan": {
-            "code": "15859641",
-            "globalCode": "6137",
-            "regionCode": "8869",
-            "name": "IU9Ш/I!Фf_"
-        },
-        "partyRoles": [
-            {
-                "roleType": "customer",
-                "partyId": {
-                    "localId": "99555",
-                    "forisId": 1
-                }
-            }
-        ],
-        "connectedServices": [
-            {
-                "code": "21864262",
-                "globalCode": "a34a37f7-9395-4326-aa2e-414db74c2bc8",
-                "regionCode": "CENTER",
-                "name": "3a27042d-e4b1-4ad1-a655-ccf23dfdffaa",
-                "serviceId": {
-                    "localId": "47417",
-                    "forisId": 1
-                },
-                "dateFrom": "2024-07-30T16:19:10.7664865+03:00",
-                "statusCode": "ACTIVE",
-                "type": "PE"
-            },
-            {
-                "code": "42983359",
-                "globalCode": "5979ef22-e2b0-492c-b376-4dbb9d596bf6",
-                "regionCode": "CENTER",
-                "name": "2ef0d82c-dc8c-4c59-ab2b-06c8b8a6b795",
-                "serviceId": {
-                    "localId": "91627797",
-                    "forisId": 1
-                },
-                "dateFrom": "2024-07-30T16:19:10.7676691+03:00",
-                "statusCode": "ACTIVE",
-                "type": "PE"
-            }
-        ],
-        "dateOfCreation": "2024-07-30T16:19:10.7678868+03:00",
-        "terminalDeviceBlocks": [
-            {
-                "requestId": 43687967,
-                "terminalDeviceId": 22745779,
-                "serviceCode": "7447",
-                "blockTypeCode": "UNBLOCK",
-                "spaResult": "0",
-                "id": 82316332,
-                "dateFrom": "2024-07-30T16:19:10.7751182+03:00",
-                "versionDate": "2024-07-30T16:19:10.7754413+03:00"
-            }
-        ],
-        "serviceProviderId": 9
+        "dateFrom": "2024-07-30T16:19:10.7677855+03:00"
     }
 }
