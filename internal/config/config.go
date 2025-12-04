@@ -10,10 +10,10 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Kafka     KafkaConfig     `yaml:"kafka" validate:"required"`
-	Scheduler *SchedulerConfig `yaml:"scheduler,omitempty"`
-	Logging   LoggingConfig   `yaml:"logging"`
-	Payload   PayloadConfig   `yaml:"payload" validate:"required"`
+	Kafka     KafkaConfig      `yaml:"kafka" validate:"required"`
+	Scheduler *SchedulerConfig  `yaml:"scheduler,omitempty"`
+	Logging   LoggingConfig    `yaml:"logging"`
+	Payloads  []PayloadConfig  `yaml:"payloads" validate:"required,min=1"`
 }
 
 // KafkaConfig holds Kafka connection settings
@@ -42,6 +42,7 @@ type LoggingConfig struct {
 
 // PayloadConfig holds payload template settings
 type PayloadConfig struct {
+	Name         string `yaml:"name"`
 	TemplatePath string `yaml:"template_path" validate:"required"`
 	BatchSize    int    `yaml:"batch_size"`
 }
@@ -83,8 +84,13 @@ func (c *Config) setDefaults() {
 	if c.Logging.Format == "" {
 		c.Logging.Format = "text"
 	}
-	if c.Payload.BatchSize == 0 {
-		c.Payload.BatchSize = 1
+	for i := range c.Payloads {
+		if c.Payloads[i].BatchSize == 0 {
+			c.Payloads[i].BatchSize = 1
+		}
+		if c.Payloads[i].Name == "" {
+			c.Payloads[i].Name = fmt.Sprintf("payload-%d", i+1)
+		}
 	}
 	if c.Scheduler != nil && c.Scheduler.Enabled {
 		if c.Scheduler.Interval == 0 {
@@ -104,8 +110,13 @@ func (c *Config) Validate() error {
 	if c.Kafka.Topic == "" {
 		return fmt.Errorf("kafka.topic is required")
 	}
-	if c.Payload.TemplatePath == "" {
-		return fmt.Errorf("payload.template_path is required")
+	if len(c.Payloads) == 0 {
+		return fmt.Errorf("at least one payload is required")
+	}
+	for i, payload := range c.Payloads {
+		if payload.TemplatePath == "" {
+			return fmt.Errorf("payloads[%d].template_path is required", i)
+		}
 	}
 	if c.Scheduler != nil && c.Scheduler.Enabled {
 		if c.Scheduler.Interval <= 0 {

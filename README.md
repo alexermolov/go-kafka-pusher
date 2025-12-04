@@ -3,15 +3,17 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/alexermolov/go-kafka-pusher)](https://goreportcard.com/report/github.com/alexermolov/go-kafka-pusher)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A high-performance, thread-safe Kafka message producer with template-based payload generation and flexible scheduling.
+A high-performance, thread-safe Kafka message producer with template-based payload generation, flexible scheduling, and support for multiple concurrent payload streams.
 
 ## Features
 
-- 🚀 **High Performance**: Optimized Kafka writer with connection pooling and batching
+- 🚀 **High Performance**: Optimized Kafka writer with parallel message generation
+- 🔀 **Multiple Payloads**: Configure and send different message types simultaneously
+- 📦 **Batch Processing**: Control batch sizes per payload for optimal throughput
 - 🔒 **Thread-Safe**: All components are designed for concurrent use
 - 📝 **Template Engine**: Dynamic message generation with substitution variables
 - ⏰ **Flexible Scheduling**: Built-in scheduler with configurable worker pools
-- 🔧 **Configuration**: YAML-based configuration
+- 🔧 **YAML Configuration**: Easy-to-manage YAML-based configuration
 - 📊 **Structured Logging**: Built-in structured logging with slog
 - 🛡️ **Graceful Shutdown**: Proper signal handling and resource cleanup
 - 🎯 **Production Ready**: Comprehensive error handling and statistics tracking
@@ -34,32 +36,97 @@ make build
 
 ### Basic Usage
 
-1. Create configuration files:
-
-```bash
-cp config.example.yaml config.yaml
-cp payload.example.yaml payload.yaml
-```
-
-2. Edit `config.yaml` with your Kafka settings:
+1. Create configuration file `config.yaml`:
 
 ```yaml
 kafka:
   brokers:
     - localhost:9092
   topic: my-topic
-  client_id: kafka-pusher
+
+scheduler:
+  enabled: true
+  interval: 5s
+
+payloads:
+  - name: my-payload
+    template_path: ./payload.yaml
+    batch_size: 10
+```
+
+2. Create payload template `payload.yaml`:
+
+```yaml
+substitution:
+  id: "{{@uuid}}"
+  timestamp: "{{@now|RFC3339}}"
+  
+template:
+  message_id: "{{.id}}"
+  created_at: "{{.timestamp}}"
+  data: "Hello Kafka!"
 ```
 
 3. Run the application:
 
 ```bash
-# Single message
-./bin/kafka-pusher -config config.yaml
+# With scheduler (continuous mode)
+./kafka-pusher -config config.yaml
 
-# Continuous mode with scheduler
-# (Enable scheduler in config.yaml first)
-./bin/kafka-pusher -config config.yaml
+# Single execution (disable scheduler first)
+./kafka-pusher -config config.yaml
+```
+
+## Use Cases
+
+### Load Testing
+
+Generate high-volume traffic to test Kafka cluster performance:
+
+```yaml
+scheduler:
+  interval: 1s
+  worker_pool_size: 10
+
+payloads:
+  - name: load-test
+    template_path: ./payload.yaml
+    batch_size: 1000  # 1000 messages per second
+```
+
+### Multi-Stream Data Generation
+
+Simulate multiple data sources sending different message types:
+
+```yaml
+payloads:
+  - name: user-events
+    template_path: ./user-events.yaml
+    batch_size: 50
+    
+  - name: system-logs
+    template_path: ./system-logs.yaml
+    batch_size: 100
+    
+  - name: transactions
+    template_path: ./transactions.yaml
+    batch_size: 20
+```
+
+All payloads are sent **in parallel** every scheduler interval.
+
+### Development & Testing
+
+Populate test topics with realistic data:
+
+```yaml
+scheduler:
+  enabled: false  # Single execution
+
+payloads:
+  - name: test-data
+    template_path: ./test-payload.yaml
+    batch_size: 100
 ```
 
 ## Configuration
@@ -74,22 +141,35 @@ kafka:
   client_id: kafka-pusher
   partition: 0              # -1 for automatic
   timeout: 10s
-  batch_size: 100
   async: false
 
 scheduler:
   enabled: true
-  interval: 5s
-  worker_pool_size: 1
+  interval: 5s              # How often to send messages
+  worker_pool_size: 1       # Number of concurrent workers
 
 logging:
   level: info               # debug, info, warn, error
   format: text              # text or json
-  verbose: true
+  verbose: true             # Log full message content
 
-payload:
-  template_path: ./payload.yaml  # or ./payload.json
+# Multiple payload configurations
+payloads:
+  - name: orders            # Identifier for this payload
+    template_path: ./payload.yaml
+    batch_size: 10          # Send 10 messages per execution
+  
+  - name: events
+    template_path: ./payload-events.yaml
+    batch_size: 5           # Send 5 messages per execution
 ```
+
+**Key Configuration Options:**
+
+- **`payloads`**: Array of payload configurations, each with its own template and batch size
+- **`batch_size`**: Number of messages to generate and send in each batch for this payload
+- **`name`**: Identifier used in logs to distinguish between different payloads
+- All payloads are processed **in parallel** for maximum throughput
 
 ### Payload Template (`payload.yaml` or `payload.json`)
 
@@ -224,38 +304,90 @@ docker run -v $(pwd)/config.yaml:/app/config.yaml \
 
 ### High Throughput
 
+For maximum message volume, increase batch sizes and enable multiple payloads:
+
 ```yaml
 kafka:
-  batch_size: 1000
   async: true
   
 scheduler:
-  worker_pool_size: 10
+  interval: 1s
+  worker_pool_size: 5
+
+payloads:
+  - name: stream-1
+    template_path: ./payload-1.yaml
+    batch_size: 100
+  - name: stream-2
+    template_path: ./payload-2.yaml
+    batch_size: 100
+  - name: stream-3
+    template_path: ./payload-3.yaml
+    batch_size: 100
 ```
+
+This configuration will send **300 messages per second** (3 payloads × 100 messages each).
 
 ### Low Latency
 
+For minimal delay between message generation and delivery:
+
 ```yaml
 kafka:
-  batch_size: 1
   async: false
   timeout: 1s
+
+scheduler:
+  interval: 100ms
+  worker_pool_size: 1
+
+payloads:
+  - name: realtime
+    template_path: ./payload.yaml
+    batch_size: 1
 ```
+
+### Balanced Configuration
+
+```yaml
+scheduler:
+  interval: 5s
+  worker_pool_size: 2
+
+payloads:
+  - name: orders
+    template_path: ./payload-orders.yaml
+    batch_size: 20
+  - name: events
+    template_path: ./payload-events.yaml
+    batch_size: 10
+```
+
+Sends **30 messages every 5 seconds** (20 orders + 10 events in parallel).
 
 ## Monitoring
 
-The application logs structured metrics:
+The application provides detailed structured logging for each payload:
 
-```json
-{
-  "level": "info",
-  "msg": "message sent successfully",
-  "topic": "test-topic",
-  "partition": 0,
-  "size": 1024,
-  "duration": "5ms"
-}
 ```
+time=2025-12-04T18:00:00.000+00:00 level=INFO msg="template generator initialized" name=orders path=./payload.yaml batch_size=10
+time=2025-12-04T18:00:00.000+00:00 level=INFO msg="template generator initialized" name=events path=./payload-events.yaml batch_size=5
+time=2025-12-04T18:00:00.000+00:00 level=INFO msg="kafka producer initialized" brokers=[localhost:9092] topic=test-topic
+time=2025-12-04T18:00:00.000+00:00 level=INFO msg="scheduler started" interval=5s workers=1
+
+time=2025-12-04T18:00:00.100+00:00 level=INFO msg="sending batch to Kafka" payload=orders batch_size=10
+time=2025-12-04T18:00:00.105+00:00 level=INFO msg="batch sent successfully" topic=test-topic count=10 duration=5ms
+
+time=2025-12-04T18:00:00.110+00:00 level=INFO msg="sending batch to Kafka" payload=events batch_size=5
+time=2025-12-04T18:00:00.112+00:00 level=INFO msg="batch sent successfully" topic=test-topic count=5 duration=2ms
+```
+
+### Key Metrics
+
+- **Batch size**: Number of messages in each batch per payload
+- **Duration**: Time taken to send the batch
+- **Count**: Actual number of messages sent
+- **Payload name**: Which payload stream generated the messages
 
 ## Troubleshooting
 

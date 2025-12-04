@@ -48,7 +48,12 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 	t.Logf("  Logging.Level: %s", cfg.Logging.Level)
 	t.Logf("  Logging.Format: %s", cfg.Logging.Format)
 	t.Logf("  Logging.Verbose: %v", cfg.Logging.Verbose)
-	t.Logf("  Payload.TemplatePath: %s", cfg.Payload.TemplatePath)
+	t.Logf("  Payloads count: %d", len(cfg.Payloads))
+	for i, p := range cfg.Payloads {
+		t.Logf("  Payloads[%d].Name: %s", i, p.Name)
+		t.Logf("  Payloads[%d].TemplatePath: %s", i, p.TemplatePath)
+		t.Logf("  Payloads[%d].BatchSize: %d", i, p.BatchSize)
+	}
 	
 	// Basic assertions
 	if len(cfg.Kafka.Brokers) == 0 {
@@ -57,8 +62,13 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 	if cfg.Kafka.Topic == "" {
 		t.Error("Expected Kafka topic to be set")
 	}
-	if cfg.Payload.TemplatePath == "" {
-		t.Error("Expected payload template path to be set")
+	if len(cfg.Payloads) == 0 {
+		t.Error("Expected at least one payload")
+	}
+	for i, p := range cfg.Payloads {
+		if p.TemplatePath == "" {
+			t.Errorf("Expected payload[%d] template path to be set", i)
+		}
 	}
 }
 
@@ -73,8 +83,8 @@ func TestConfigYAMLDefaults(t *testing.T) {
     - localhost:9092
   topic: minimal-topic
 
-payload:
-  template_path: ./payload.yaml
+payloads:
+  - template_path: ./payload.yaml
 `
 	
 	err := os.WriteFile(configPath, []byte(yamlContent), 0644)
@@ -94,8 +104,10 @@ payload:
 	if cfg.Kafka.Timeout != 10*time.Second {
 		t.Errorf("Expected default Timeout 10s, got %v", cfg.Kafka.Timeout)
 	}
-	if cfg.Payload.BatchSize != 1 {
-		t.Errorf("Expected default Payload.BatchSize 1, got %d", cfg.Payload.BatchSize)
+	if len(cfg.Payloads) == 0 {
+		t.Error("Expected at least one payload")
+	} else if cfg.Payloads[0].BatchSize != 1 {
+		t.Errorf("Expected default Payload.BatchSize 1, got %d", cfg.Payloads[0].BatchSize)
 	}
 	if cfg.Logging.Level != "info" {
 		t.Errorf("Expected default logging level 'info', got '%s'", cfg.Logging.Level)
@@ -125,8 +137,10 @@ logging:
   format: json
   verbose: true
 
-payload:
-  template_path: ./payload.yaml
+payloads:
+  - name: test-payload
+    template_path: ./payload.yaml
+    batch_size: 5
 `
 	
 	err := os.WriteFile(configPath, []byte(yamlContent), 0644)
@@ -165,8 +179,8 @@ func TestConfigYAMLInvalid(t *testing.T) {
 			content: `kafka:
   topic: test
 
-payload:
-  template_path: ./payload.yaml
+payloads:
+  - template_path: ./payload.yaml
 `,
 		},
 		{
@@ -175,8 +189,8 @@ payload:
   brokers:
     - localhost:9092
 
-payload:
-  template_path: ./payload.yaml
+payloads:
+  - template_path: ./payload.yaml
 `,
 		},
 		{

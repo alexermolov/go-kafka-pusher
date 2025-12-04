@@ -1,0 +1,21 @@
+# Event Payload Template Configuration
+
+# Substitution variables that will be replaced in the template
+substitution:
+  eventId: "{{@uuid}}"
+  timestamp: "{{@now|RFC3339}}"
+  userId: "{{@rnd|8}}"
+  sessionId: "{{@guid}}"
+  eventType: "{{@rnd|1}}"
+
+# Event message template
+template:
+  event_id: "{{.eventId}}"
+  timestamp: "{{.timestamp}}"
+  user:
+    id: "{{.userId}}"
+    session: "{{.sessionId}}"
+  type: "{{.eventType}}"
+  metadata:
+    source: "kafka-pusher"
+    version: "1.0"

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/alexermolov/go-kafka-pusher/internal/config"
@@ -65,12 +66,30 @@ func main() {
 }
 
 func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-chan os.Signal) error {
-	// Initialize template generator
-	gen, err := template.NewGenerator(cfg.Payload.TemplatePath)
-	if err != nil {
-		return fmt.Errorf("failed to create template generator: %w", err)
+	// Initialize template generators for each payload
+	type payloadGenerator struct {
+		name      string
+		generator *template.Generator
+		batchSize int
 	}
-	log.Info("template generator initialized", slog.String("path", cfg.Payload.TemplatePath))
+
+	generators := make([]payloadGenerator, len(cfg.Payloads))
+	for i, payloadCfg := range cfg.Payloads {
+		gen, err := template.NewGenerator(payloadCfg.TemplatePath)
+		if err != nil {
+			return fmt.Errorf("failed to create template generator for %s: %w", payloadCfg.Name, err)
+		}
+		generators[i] = payloadGenerator{
+			name:      payloadCfg.Name,
+			generator: gen,
+			batchSize: payloadCfg.BatchSize,
+		}
+		log.Info("template generator initialized",
+			slog.String("name", payloadCfg.Name),
+			slog.String("path", payloadCfg.TemplatePath),
+			slog.Int("batch_size", payloadCfg.BatchSize),
+		)
+	}
 
 	// Initialize Kafka producer
 	producer, err := kafka.NewProducer(&cfg.Kafka, log)
@@ -86,35 +105,56 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 		slog.Any("brokers", cfg.Kafka.Brokers),
 		slog.String("topic", cfg.Kafka.Topic),
 	)
-	log.Info("payload configuration",
-		slog.Int("batch_size", cfg.Payload.BatchSize),
-		slog.String("template_path", cfg.Payload.TemplatePath),
-	)
 
 	// Define the task function
 	taskFunc := func(ctx context.Context) error {
-		// Generate batch of messages from template
-		messages := make([][]byte, cfg.Payload.BatchSize)
-		for i := 0; i < cfg.Payload.BatchSize; i++ {
-			message, err := gen.Generate()
-			if err != nil {
-				return fmt.Errorf("failed to generate message %d: %w", i, err)
-			}
-			messages[i] = message
+		// Process all payloads in parallel
+		var wg sync.WaitGroup
+		errChan := make(chan error, len(generators))
 
-			// Log the message if verbose mode is enabled
-			if cfg.Logging.Verbose {
-				log.Debug("generated message",
-					slog.Int("index", i),
-					slog.String("payload", string(message)),
+		for _, pg := range generators {
+			wg.Add(1)
+			go func(pg payloadGenerator) {
+				defer wg.Done()
+
+				// Generate batch of messages from template
+				messages := make([][]byte, pg.batchSize)
+				for i := 0; i < pg.batchSize; i++ {
+					message, err := pg.generator.Generate()
+					if err != nil {
+						errChan <- fmt.Errorf("failed to generate message %d for %s: %w", i, pg.name, err)
+						return
+					}
+					messages[i] = message
+
+					// Log the message if verbose mode is enabled
+					if cfg.Logging.Verbose {
+						log.Debug("generated message",
+							slog.String("payload", pg.name),
+							slog.Int("index", i),
+							slog.String("content", string(message)),
+						)
+					}
+				}
+
+				// Send batch to Kafka
+				log.Info("sending batch to Kafka",
+					slog.String("payload", pg.name),
+					slog.Int("batch_size", len(messages)),
 				)
-			}
+				if err := producer.SendBatch(ctx, messages); err != nil {
+					errChan <- fmt.Errorf("failed to send batch for %s: %w", pg.name, err)
+					return
+				}
+			}(pg)
 		}
 
-		// Send batch to Kafka
-		log.Info("sending batch to Kafka", slog.Int("batch_size", len(messages)))
-		if err := producer.SendBatch(ctx, messages); err != nil {
-			return fmt.Errorf("failed to send batch: %w", err)
+		wg.Wait()
+		close(errChan)
+
+		// Check for errors
+		for err := range errChan {
+			return err
 		}
 
 		return nil

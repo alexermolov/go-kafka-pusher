@@ -20,8 +20,8 @@ logging:
   level: debug
   format: json
 
-payload:
-  template_path: ./test.yaml
+payloads:
+  - template_path: ./test.yaml
 `
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")
 	if err != nil {
@@ -76,8 +76,10 @@ func TestValidate(t *testing.T) {
 					Brokers: []string{"localhost:9092"},
 					Topic:   "test-topic",
 				},
-				Payload: PayloadConfig{
-					TemplatePath: "./test.yaml",
+				Payloads: []PayloadConfig{
+					{
+						TemplatePath: "./test.yaml",
+					},
 				},
 			},
 			wantErr: false,
@@ -88,8 +90,10 @@ func TestValidate(t *testing.T) {
 				Kafka: KafkaConfig{
 					Topic: "test-topic",
 				},
-				Payload: PayloadConfig{
-					TemplatePath: "./test.yaml",
+				Payloads: []PayloadConfig{
+					{
+						TemplatePath: "./test.yaml",
+					},
 				},
 			},
 			wantErr: true,
@@ -100,8 +104,10 @@ func TestValidate(t *testing.T) {
 				Kafka: KafkaConfig{
 					Brokers: []string{"localhost:9092"},
 				},
-				Payload: PayloadConfig{
-					TemplatePath: "./test.yaml",
+				Payloads: []PayloadConfig{
+					{
+						TemplatePath: "./test.yaml",
+					},
 				},
 			},
 			wantErr: true,
@@ -134,8 +140,10 @@ func TestSetDefaults(t *testing.T) {
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 		},
-		Payload: PayloadConfig{
-			TemplatePath: "./test.yaml",
+		Payloads: []PayloadConfig{
+			{
+				TemplatePath: "./test.yaml",
+			},
 		},
 	}
 
@@ -147,8 +155,10 @@ func TestSetDefaults(t *testing.T) {
 	if cfg.Kafka.Timeout != 10*time.Second {
 		t.Errorf("Expected default timeout 10s, got %v", cfg.Kafka.Timeout)
 	}
-	if cfg.Payload.BatchSize != 1 {
-		t.Errorf("Expected default payload batch_size 1, got %d", cfg.Payload.BatchSize)
+	if len(cfg.Payloads) == 0 {
+		t.Error("Expected at least one payload")
+	} else if cfg.Payloads[0].BatchSize != 1 {
+		t.Errorf("Expected default payload batch_size 1, got %d", cfg.Payloads[0].BatchSize)
 	}
 	if cfg.Logging.Level != "info" {
 		t.Errorf("Expected default log level info, got %s", cfg.Logging.Level)
