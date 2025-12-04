@@ -37,7 +37,6 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 	t.Logf("  Kafka.ClientID: %s", cfg.Kafka.ClientID)
 	t.Logf("  Kafka.Partition: %d", cfg.Kafka.Partition)
 	t.Logf("  Kafka.Timeout: %v", cfg.Kafka.Timeout)
-	t.Logf("  Kafka.BatchSize: %d", cfg.Kafka.BatchSize)
 	t.Logf("  Kafka.Async: %v", cfg.Kafka.Async)
 	
 	if cfg.Scheduler != nil {
@@ -95,8 +94,8 @@ payload:
 	if cfg.Kafka.Timeout != 10*time.Second {
 		t.Errorf("Expected default Timeout 10s, got %v", cfg.Kafka.Timeout)
 	}
-	if cfg.Kafka.BatchSize != 100 {
-		t.Errorf("Expected default BatchSize 100, got %d", cfg.Kafka.BatchSize)
+	if cfg.Payload.BatchSize != 1 {
+		t.Errorf("Expected default Payload.BatchSize 1, got %d", cfg.Payload.BatchSize)
 	}
 	if cfg.Logging.Level != "info" {
 		t.Errorf("Expected default logging level 'info', got '%s'", cfg.Logging.Level)

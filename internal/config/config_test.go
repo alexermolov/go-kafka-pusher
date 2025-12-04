@@ -147,8 +147,8 @@ func TestSetDefaults(t *testing.T) {
 	if cfg.Kafka.Timeout != 10*time.Second {
 		t.Errorf("Expected default timeout 10s, got %v", cfg.Kafka.Timeout)
 	}
-	if cfg.Kafka.BatchSize != 100 {
-		t.Errorf("Expected default batch_size 100, got %d", cfg.Kafka.BatchSize)
+	if cfg.Payload.BatchSize != 1 {
+		t.Errorf("Expected default payload batch_size 1, got %d", cfg.Payload.BatchSize)
 	}
 	if cfg.Logging.Level != "info" {
 		t.Errorf("Expected default log level info, got %s", cfg.Logging.Level)
