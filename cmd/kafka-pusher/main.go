@@ -86,6 +86,10 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 		slog.Any("brokers", cfg.Kafka.Brokers),
 		slog.String("topic", cfg.Kafka.Topic),
 	)
+	log.Info("payload configuration",
+		slog.Int("batch_size", cfg.Payload.BatchSize),
+		slog.String("template_path", cfg.Payload.TemplatePath),
+	)
 
 	// Define the task function
 	taskFunc := func(ctx context.Context) error {

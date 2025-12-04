@@ -27,7 +27,6 @@ func NewProducer(cfg *config.KafkaConfig, logger *slog.Logger) (*Producer, error
 		Addr:         kafka.TCP(cfg.Brokers...),
 		Topic:        cfg.Topic,
 		Balancer:     &kafka.Hash{},
-		BatchSize:    cfg.BatchSize,
 		BatchTimeout: 10 * time.Millisecond,
 		ReadTimeout:  cfg.Timeout,
 		WriteTimeout: cfg.Timeout,

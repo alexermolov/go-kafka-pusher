@@ -23,7 +23,6 @@ type KafkaConfig struct {
 	ClientID  string        `yaml:"client_id"`
 	Partition int           `yaml:"partition"`
 	Timeout   time.Duration `yaml:"timeout"`
-	BatchSize int           `yaml:"batch_size"`
 	Async     bool          `yaml:"async"`
 }
 
@@ -77,9 +76,6 @@ func (c *Config) setDefaults() {
 	}
 	if c.Kafka.Timeout == 0 {
 		c.Kafka.Timeout = 10 * time.Second
-	}
-	if c.Kafka.BatchSize == 0 {
-		c.Kafka.BatchSize = 100
 	}
 	if c.Logging.Level == "" {
 		c.Logging.Level = "info"
