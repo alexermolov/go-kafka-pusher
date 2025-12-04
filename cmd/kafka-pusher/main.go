@@ -108,6 +108,7 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 		}
 
 		// Send batch to Kafka
+		log.Info("sending batch to Kafka", slog.Int("batch_size", len(messages)))
 		if err := producer.SendBatch(ctx, messages); err != nil {
 			return fmt.Errorf("failed to send batch: %w", err)
 		}
