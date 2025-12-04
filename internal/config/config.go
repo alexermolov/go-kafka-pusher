@@ -44,6 +44,7 @@ type LoggingConfig struct {
 // PayloadConfig holds payload template settings
 type PayloadConfig struct {
 	TemplatePath string `yaml:"template_path" validate:"required"`
+	BatchSize    int    `yaml:"batch_size"`
 }
 
 // Load reads and parses the configuration file
@@ -85,6 +86,9 @@ func (c *Config) setDefaults() {
 	}
 	if c.Logging.Format == "" {
 		c.Logging.Format = "text"
+	}
+	if c.Payload.BatchSize == 0 {
+		c.Payload.BatchSize = 1
 	}
 	if c.Scheduler != nil && c.Scheduler.Enabled {
 		if c.Scheduler.Interval == 0 {

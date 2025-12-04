@@ -89,20 +89,27 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 
 	// Define the task function
 	taskFunc := func(ctx context.Context) error {
-		// Generate message from template
-		message, err := gen.Generate()
-		if err != nil {
-			return fmt.Errorf("failed to generate message: %w", err)
+		// Generate batch of messages from template
+		messages := make([][]byte, cfg.Payload.BatchSize)
+		for i := 0; i < cfg.Payload.BatchSize; i++ {
+			message, err := gen.Generate()
+			if err != nil {
+				return fmt.Errorf("failed to generate message %d: %w", i, err)
+			}
+			messages[i] = message
+
+			// Log the message if verbose mode is enabled
+			if cfg.Logging.Verbose {
+				log.Debug("generated message",
+					slog.Int("index", i),
+					slog.String("payload", string(message)),
+				)
+			}
 		}
 
-		// Log the message if verbose mode is enabled
-		if cfg.Logging.Verbose {
-			log.Debug("generated message", slog.String("payload", string(message)))
-		}
-
-		// Send message to Kafka
-		if err := producer.Send(ctx, message); err != nil {
-			return fmt.Errorf("failed to send message: %w", err)
+		// Send batch to Kafka
+		if err := producer.SendBatch(ctx, messages); err != nil {
+			return fmt.Errorf("failed to send batch: %w", err)
 		}
 
 		return nil
