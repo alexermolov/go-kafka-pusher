@@ -42,7 +42,6 @@ make build
 kafka:
   brokers:
     - localhost:9092
-  topic: my-topic
 
 scheduler:
   enabled: true
@@ -52,6 +51,7 @@ payloads:
   - name: my-payload
     template_path: ./payload.yaml
     batch_size: 10
+    topic: my-topic
 ```
 
 2. Create payload template `payload.yaml`:
@@ -103,14 +103,17 @@ payloads:
   - name: user-events
     template_path: ./user-events.yaml
     batch_size: 50
+    topic: user-events-topic
     
   - name: system-logs
     template_path: ./system-logs.yaml
     batch_size: 100
+    topic: system-logs-topic
     
   - name: transactions
     template_path: ./transactions.yaml
     batch_size: 20
+    topic: transactions-topic
 ```
 
 All payloads are sent **in parallel** every scheduler interval.
@@ -127,6 +130,7 @@ payloads:
   - name: test-data
     template_path: ./test-payload.yaml
     batch_size: 100
+    topic: test-topic
 ```
 
 ## Configuration
@@ -137,7 +141,6 @@ payloads:
 kafka:
   brokers:
     - localhost:9092
-  topic: test-topic
   client_id: kafka-pusher
   partition: 0              # -1 for automatic
   timeout: 10s
@@ -158,18 +161,21 @@ payloads:
   - name: orders            # Identifier for this payload
     template_path: ./payload.yaml
     batch_size: 10          # Send 10 messages per execution
+    topic: orders-topic     # Kafka topic for this payload
   
   - name: events
     template_path: ./payload-events.yaml
     batch_size: 5           # Send 5 messages per execution
+    topic: events-topic     # Kafka topic for this payload
 ```
 
 **Key Configuration Options:**
 
-- **`payloads`**: Array of payload configurations, each with its own template and batch size
+- **`payloads`**: Array of payload configurations, each with its own template, batch size, and target topic
+- **`topic`**: Kafka topic where messages from this payload will be sent (required for each payload)
 - **`batch_size`**: Number of messages to generate and send in each batch for this payload
 - **`name`**: Identifier used in logs to distinguish between different payloads
-- All payloads are processed **in parallel** for maximum throughput
+- All payloads are processed **in parallel** for maximum throughput, allowing you to send different message types to different topics simultaneously
 
 ### Payload Template (`payload.yaml` or `payload.json`)
 
