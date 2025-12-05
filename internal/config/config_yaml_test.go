@@ -59,15 +59,15 @@ func TestLoadProjectConfigYAML(t *testing.T) {
 	if len(cfg.Kafka.Brokers) == 0 {
 		t.Error("Expected at least one Kafka broker")
 	}
-	if cfg.Kafka.Topic == "" {
-		t.Error("Expected Kafka topic to be set")
-	}
 	if len(cfg.Payloads) == 0 {
 		t.Error("Expected at least one payload")
 	}
 	for i, p := range cfg.Payloads {
 		if p.TemplatePath == "" {
 			t.Errorf("Expected payload[%d] template path to be set", i)
+		}
+		if p.Topic == "" {
+			t.Errorf("Expected payload[%d] topic to be set", i)
 		}
 	}
 }
@@ -81,10 +81,10 @@ func TestConfigYAMLDefaults(t *testing.T) {
 	yamlContent := `kafka:
   brokers:
     - localhost:9092
-  topic: minimal-topic
 
 payloads:
   - template_path: ./payload.yaml
+    topic: minimal-topic
 `
 	
 	err := os.WriteFile(configPath, []byte(yamlContent), 0644)
@@ -125,7 +125,6 @@ func TestConfigYAMLWithScheduler(t *testing.T) {
 	yamlContent := `kafka:
   brokers:
     - localhost:9092
-  topic: scheduler-test
 
 scheduler:
   enabled: true
@@ -141,6 +140,7 @@ payloads:
   - name: test-payload
     template_path: ./payload.yaml
     batch_size: 5
+    topic: scheduler-test
 `
 	
 	err := os.WriteFile(configPath, []byte(yamlContent), 0644)
@@ -176,15 +176,15 @@ func TestConfigYAMLInvalid(t *testing.T) {
 	}{
 		{
 			name: "missing_brokers",
-			content: `kafka:
-  topic: test
+			content: `kafka: {}
 
 payloads:
   - template_path: ./payload.yaml
+    topic: test
 `,
 		},
 		{
-			name: "missing_topic",
+			name: "missing_topic_in_payload",
 			content: `kafka:
   brokers:
     - localhost:9092

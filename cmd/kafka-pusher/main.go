@@ -71,6 +71,7 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 		name      string
 		generator *template.Generator
 		batchSize int
+		topic     string
 	}
 
 	generators := make([]payloadGenerator, len(cfg.Payloads))
@@ -83,11 +84,13 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 			name:      payloadCfg.Name,
 			generator: gen,
 			batchSize: payloadCfg.BatchSize,
+			topic:     payloadCfg.Topic,
 		}
 		log.Info("template generator initialized",
 			slog.String("name", payloadCfg.Name),
 			slog.String("path", payloadCfg.TemplatePath),
 			slog.Int("batch_size", payloadCfg.BatchSize),
+			slog.String("topic", payloadCfg.Topic),
 		)
 	}
 
@@ -103,7 +106,6 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 	}()
 	log.Info("kafka producer initialized",
 		slog.Any("brokers", cfg.Kafka.Brokers),
-		slog.String("topic", cfg.Kafka.Topic),
 	)
 
 	// Define the task function
@@ -140,9 +142,10 @@ func run(ctx context.Context, cfg *config.Config, log *slog.Logger, sigChan <-ch
 				// Send batch to Kafka
 				log.Info("sending batch to Kafka",
 					slog.String("payload", pg.name),
+					slog.String("topic", pg.topic),
 					slog.Int("batch_size", len(messages)),
 				)
-				if err := producer.SendBatch(ctx, messages); err != nil {
+				if err := producer.SendBatch(ctx, pg.topic, messages); err != nil {
 					errChan <- fmt.Errorf("failed to send batch for %s: %w", pg.name, err)
 					return
 				}

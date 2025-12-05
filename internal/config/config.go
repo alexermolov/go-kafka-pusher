@@ -19,7 +19,7 @@ type Config struct {
 // KafkaConfig holds Kafka connection settings
 type KafkaConfig struct {
 	Brokers   []string      `yaml:"brokers" validate:"required,min=1"`
-	Topic     string        `yaml:"topic" validate:"required"`
+	Topic     string        `yaml:"topic,omitempty"` // Optional: used as default if not specified in payload
 	ClientID  string        `yaml:"client_id"`
 	Partition int           `yaml:"partition"`
 	Timeout   time.Duration `yaml:"timeout"`
@@ -45,6 +45,7 @@ type PayloadConfig struct {
 	Name         string `yaml:"name"`
 	TemplatePath string `yaml:"template_path" validate:"required"`
 	BatchSize    int    `yaml:"batch_size"`
+	Topic        string `yaml:"topic" validate:"required"`
 }
 
 // Load reads and parses the configuration file
@@ -107,15 +108,15 @@ func (c *Config) Validate() error {
 	if len(c.Kafka.Brokers) == 0 {
 		return fmt.Errorf("kafka.brokers is required")
 	}
-	if c.Kafka.Topic == "" {
-		return fmt.Errorf("kafka.topic is required")
-	}
 	if len(c.Payloads) == 0 {
 		return fmt.Errorf("at least one payload is required")
 	}
 	for i, payload := range c.Payloads {
 		if payload.TemplatePath == "" {
 			return fmt.Errorf("payloads[%d].template_path is required", i)
+		}
+		if payload.Topic == "" {
+			return fmt.Errorf("payloads[%d].topic is required", i)
 		}
 	}
 	if c.Scheduler != nil && c.Scheduler.Enabled {

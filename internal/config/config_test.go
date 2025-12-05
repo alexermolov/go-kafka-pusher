@@ -22,6 +22,7 @@ logging:
 
 payloads:
   - template_path: ./test.yaml
+    topic: test-topic
 `
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")
 	if err != nil {
@@ -74,11 +75,11 @@ func TestValidate(t *testing.T) {
 			cfg: Config{
 				Kafka: KafkaConfig{
 					Brokers: []string{"localhost:9092"},
-					Topic:   "test-topic",
 				},
 				Payloads: []PayloadConfig{
 					{
 						TemplatePath: "./test.yaml",
+						Topic:        "test-topic",
 					},
 				},
 			},
@@ -87,19 +88,18 @@ func TestValidate(t *testing.T) {
 		{
 			name: "missing brokers",
 			cfg: Config{
-				Kafka: KafkaConfig{
-					Topic: "test-topic",
-				},
+				Kafka: KafkaConfig{},
 				Payloads: []PayloadConfig{
 					{
 						TemplatePath: "./test.yaml",
+						Topic:        "test-topic",
 					},
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "missing topic",
+			name: "missing topic in payload",
 			cfg: Config{
 				Kafka: KafkaConfig{
 					Brokers: []string{"localhost:9092"},
@@ -107,6 +107,7 @@ func TestValidate(t *testing.T) {
 				Payloads: []PayloadConfig{
 					{
 						TemplatePath: "./test.yaml",
+						// Topic is missing
 					},
 				},
 			},
@@ -117,7 +118,6 @@ func TestValidate(t *testing.T) {
 			cfg: Config{
 				Kafka: KafkaConfig{
 					Brokers: []string{"localhost:9092"},
-					Topic:   "test-topic",
 				},
 			},
 			wantErr: true,
@@ -138,11 +138,11 @@ func TestSetDefaults(t *testing.T) {
 	cfg := Config{
 		Kafka: KafkaConfig{
 			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
 		},
 		Payloads: []PayloadConfig{
 			{
 				TemplatePath: "./test.yaml",
+				Topic:        "test-topic",
 			},
 		},
 	}

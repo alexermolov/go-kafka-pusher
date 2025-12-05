@@ -25,7 +25,7 @@ func NewProducer(cfg *config.KafkaConfig, logger *slog.Logger) (*Producer, error
 
 	writer := &kafka.Writer{
 		Addr:         kafka.TCP(cfg.Brokers...),
-		Topic:        cfg.Topic,
+		// Topic is now set per-message, not at writer level
 		Balancer:     &kafka.Hash{},
 		BatchTimeout: 10 * time.Millisecond,
 		ReadTimeout:  cfg.Timeout,
@@ -50,8 +50,9 @@ func NewProducer(cfg *config.KafkaConfig, logger *slog.Logger) (*Producer, error
 }
 
 // Send sends a message to Kafka
-func (p *Producer) Send(ctx context.Context, message []byte) error {
+func (p *Producer) Send(ctx context.Context, topic string, message []byte) error {
 	msg := kafka.Message{
+		Topic: topic,
 		Value: message,
 		Time:  time.Now(),
 	}
@@ -74,7 +75,7 @@ func (p *Producer) Send(ctx context.Context, message []byte) error {
 	}
 
 	p.logger.Info("message sent successfully",
-		slog.String("topic", p.cfg.Topic),
+		slog.String("topic", topic),
 		slog.Int("size", len(message)),
 		slog.Duration("duration", duration),
 	)
@@ -83,7 +84,7 @@ func (p *Producer) Send(ctx context.Context, message []byte) error {
 }
 
 // SendBatch sends multiple messages in a batch
-func (p *Producer) SendBatch(ctx context.Context, messages [][]byte) error {
+func (p *Producer) SendBatch(ctx context.Context, topic string, messages [][]byte) error {
 	if len(messages) == 0 {
 		return nil
 	}
@@ -91,6 +92,7 @@ func (p *Producer) SendBatch(ctx context.Context, messages [][]byte) error {
 	kafkaMessages := make([]kafka.Message, len(messages))
 	for i, msg := range messages {
 		kafkaMessages[i] = kafka.Message{
+			Topic: topic,
 			Value: msg,
 			Time:  time.Now(),
 		}
@@ -113,7 +115,7 @@ func (p *Producer) SendBatch(ctx context.Context, messages [][]byte) error {
 	}
 
 	p.logger.Info("batch sent successfully",
-		slog.String("topic", p.cfg.Topic),
+		slog.String("topic", topic),
 		slog.Int("count", len(messages)),
 		slog.Duration("duration", duration),
 	)
